@@ -1,0 +1,52 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+
+Used ggplot2 to make from scratch
+
+
+```{r}
+#make some illustrative test data
+
+df_one_cat <- data.frame(X=rep(c("A", "B"), each=3), Y=c(rnorm(3,3,1), rnorm(3,8,1)))
+df_split_bar <- data.frame(GROUP=rep(c("A", "B"), each=12), X=rep(c("x1", "x2", "x3"), each=4, times=2), DATA=c(rpois(24, 8)))
+```
+
+
+
+
+```{r}
+require(tidyverse)
+
+#Grouped bar plot. Input long format data with grouping factor in first column, x-axis factor in second column and values in third column
+
+split_bar_plot <- function(data, y_axis = "", tit=""){
+colnames(data) <- c("sub", "cond", "val")
+data$cond <- factor(data$cond, levels=unique(data$cond))
+data$sub <- factor(data$sub, levels=unique(data$sub))
+data %>% group_by(cond, sub) %>% summarise(mean=mean(val), sd = sd(val)) %>% 
+ggplot(aes(x=cond, y=mean, fill=sub)) + 
+geom_col(position=position_dodge(0.9), color="black") + geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), size=.2, width=.2, position=position_dodge(0.9)) + geom_point(data=data, aes(x=cond, y=val, group=sub),position=position_dodge(0.9)) + theme_classic()  + labs(y=y_axis, x = "", fill="Condition", title=tit) + theme_classic() + theme(title=element_text(size=22),axis.title.y = element_text(size=20), axis.text.x = element_text(size=20, angle=45, hjust=1), axis.text.y = element_text(size=15)) + scale_fill_manual(values=c("#7F7F7F", "#C0504E"))
+}
+```
+
+
+
+
+
+```{r}
+require(tidyverse)
+
+#Load data in long format, first column labels, second column measures
+
+one_cat_plot <- function(df, y_label="", tit=""){
+  colnames(df) <- c("treatment", "data")
+  df$treatment <- factor(df$treatment, levels=unique(df$treatment))
+  df %>% group_by(treatment) %>% summarise(x = mean(data), y = sd(data)) %>% ggplot(aes(x=treatment, y=x)) + geom_col(position=position_dodge(0.9), color="black", fill="grey") + geom_point(data=df, aes(x=treatment, y=data)) + labs(title=tit, y=y_label, x="") + theme(text=element_text(size=40, family="Arial")) + theme_classic() + theme(title=element_text(size=22),axis.title.y = element_text(size=20), axis.text.x = element_text(size=20, angle=45, hjust=1), axis.text.y = element_text(size=15)) + geom_errorbar(aes(ymin=x-y, ymax=x+y), size=.2, width=.2)
+}
+```
+
